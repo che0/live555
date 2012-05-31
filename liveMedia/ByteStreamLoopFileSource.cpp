@@ -36,6 +36,18 @@ ByteStreamLoopFileSource::~ByteStreamLoopFileSource() {
   delete fFileName;
 }
 
+void ByteStreamLoopFileSource::seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream) {
+	if (fSource != NULL) {
+		fSource->seekToByteAbsolute(byteNumber, numBytesToStream);
+	}
+}
+
+void ByteStreamLoopFileSource::seekToEnd() {
+	if (fSource != NULL) {
+		fSource->seekToEnd();
+	}
+}
+
 ByteStreamLoopFileSource* ByteStreamLoopFileSource
 ::createNew(UsageEnvironment& env, char const* fileName,
 	    unsigned preferredFrameSize, unsigned playTimePerFrame) {

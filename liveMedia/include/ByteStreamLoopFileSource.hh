@@ -34,6 +34,9 @@ public:
   Boolean haveStartedNewFile() const { return fHaveStartedNewFile; }
   // True iff the most recently delivered frame was the first from a newly-opened file
 
+  void seekToByteAbsolute(u_int64_t byteNumber, u_int64_t numBytesToStream = 0);
+  void seekToEnd();
+  
 protected:
   ByteStreamLoopFileSource(UsageEnvironment& env, char const* fileName,
 			    unsigned preferredFrameSize, unsigned playTimePerFrame);

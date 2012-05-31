@@ -20,7 +20,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "MatroskaFileParser.hh"
 #include "MatroskaDemuxedTrack.hh"
-#include <ByteStreamFileSource.hh>
+#include <ByteStreamLoopFileSource.hh>
 #include <GroupsockHelper.hh> // for "gettimeofday()
 
 MatroskaFileParser::MatroskaFileParser(MatroskaFile& ourFile, FramedSource* inputSource,
@@ -1226,7 +1226,7 @@ void MatroskaFileParser::restoreSavedParserState() {
 }
 
 void MatroskaFileParser::seekToFilePosition(u_int64_t offsetInFile) {
-  ByteStreamFileSource* fileSource = (ByteStreamFileSource*)fInputSource; // we know it's a "ByteStreamFileSource"
+  ByteStreamLoopFileSource* fileSource = (ByteStreamLoopFileSource*)fInputSource;
   if (fileSource != NULL) {
     fileSource->seekToByteAbsolute(offsetInFile);
     resetStateAfterSeeking();
@@ -1234,7 +1234,7 @@ void MatroskaFileParser::seekToFilePosition(u_int64_t offsetInFile) {
 }
 
 void MatroskaFileParser::seekToEndOfFile() {
-  ByteStreamFileSource* fileSource = (ByteStreamFileSource*)fInputSource; // we know it's a "ByteStreamFileSource"
+  ByteStreamLoopFileSource* fileSource = (ByteStreamLoopFileSource*)fInputSource;
   if (fileSource != NULL) {
     fileSource->seekToEnd();
     resetStateAfterSeeking();

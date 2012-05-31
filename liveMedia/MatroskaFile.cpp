@@ -20,7 +20,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "MatroskaFileParser.hh"
 #include "MatroskaDemuxedTrack.hh"
-#include <ByteStreamFileSource.hh>
+#include <ByteStreamLoopFileSource.hh>
 
 ////////// CuePoint definition //////////
 
@@ -74,7 +74,7 @@ MatroskaFile::MatroskaFile(UsageEnvironment& env, char const* fileName, onCreati
 
   // Initialize ourselves by parsing the file's 'Track' headers:
   fParserForInitialization
-    = new MatroskaFileParser(*this, ByteStreamFileSource::createNew(envir(), fileName),
+    = new MatroskaFileParser(*this, ByteStreamLoopFileSource::createNew(envir(), fileName),
 			     handleEndOfTrackHeaderParsing, this, NULL);
 }
 
@@ -275,7 +275,7 @@ MatroskaTrack::~MatroskaTrack() {
 MatroskaDemux::MatroskaDemux(MatroskaFile& ourFile)
   : Medium(ourFile.envir()),
     fOurFile(ourFile), fDemuxedTracksTable(HashTable::create(ONE_WORD_HASH_KEYS)) {
-  fOurParser = new MatroskaFileParser(ourFile, ByteStreamFileSource::createNew(envir(), ourFile.fileName()),
+  fOurParser = new MatroskaFileParser(ourFile, ByteStreamLoopFileSource::createNew(envir(), ourFile.fileName()),
 				      handleEndOfFile, this, this);
 }
 
