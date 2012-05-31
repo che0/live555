@@ -330,9 +330,10 @@ void MatroskaDemux::handleEndOfFile() {
   MatroskaDemuxedTrack** tracks = new MatroskaDemuxedTrack*[numTracks];
 
   HashTable::Iterator* iter = HashTable::Iterator::create(*fDemuxedTracksTable);
-  unsigned i, trackNumber;
+  unsigned i;
+  const char * trackNumber;
   for (i = 0; i < numTracks; ++i) {
-    tracks[i] = (MatroskaDemuxedTrack*)iter->next((char const*&)trackNumber);
+    tracks[i] = (MatroskaDemuxedTrack*)iter->next(trackNumber);
   }
   delete iter;
 
