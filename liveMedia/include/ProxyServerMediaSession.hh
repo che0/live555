@@ -29,6 +29,49 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "MediaSession.hh"
 #endif
 
+// A subclass of "RTSPClient", used to refer to the particular "ProxyServerMediaSession" object being used.
+// It is used only within the implementation of "ProxyServerMediaSession", but is defined here, in case developers wish to
+// subclass it.
+
+class ProxyRTSPClient: public RTSPClient {
+public:
+  ProxyRTSPClient(class ProxyServerMediaSession& ourServerMediaSession, char const* rtspURL,
+                  char const* username, char const* password,
+                  portNumBits tunnelOverHTTPPortNum, int verbosityLevel);
+  virtual ~ProxyRTSPClient();
+
+  void continueAfterDESCRIBE(char const* sdpDescription);
+  void continueAfterOPTIONS(int resultCode);
+  void continueAfterSETUP();
+
+private:
+  void reset();
+
+  Authenticator* auth() { return fOurAuthenticator; }
+
+  void scheduleLivenessCommand();
+  static void sendLivenessCommand(void* clientData);
+
+  void scheduleDESCRIBECommand();
+  static void sendDESCRIBE(void* clientData);
+
+  static void subsessionTimeout(void* clientData);
+  void handleSubsessionTimeout();
+
+private:
+  friend class ProxyServerMediaSession;
+  friend class ProxyServerMediaSubsession;
+  ProxyServerMediaSession& fOurServerMediaSession;
+  Authenticator* fOurAuthenticator;
+  Boolean fStreamRTPOverTCP;
+  class ProxyServerMediaSubsession *fSetupQueueHead, *fSetupQueueTail;
+  unsigned fNumSetupsDone;
+  TaskToken fLivenessCommandTask, fDESCRIBECommandTask, fSubsessionTimerTask;
+  unsigned fNextDESCRIBEDelay; // in seconds
+  Boolean fLastCommandWasPLAY;
+};
+
+
 class ProxyServerMediaSession: public ServerMediaSession {
 public:
   static ProxyServerMediaSession* createNew(UsageEnvironment& env,
@@ -44,9 +87,24 @@ public:
 
   char const* url() const;
 
+  char describeCompletedFlag;
+    // initialized to 0; set to 1 when the back-end "DESCRIBE" completes.
+    // (This can be used as a 'watch variable' in "doEventLoop()".)
+  Boolean describeCompletedSuccessfully() const { return fClientMediaSession != NULL; }
+    // This can be used - along with "describeCompletdFlag" - to check whether the back-end "DESCRIBE" completed *successfully*.
+
 protected:
   ProxyServerMediaSession(UsageEnvironment& env, char const* inputStreamURL, char const* streamName,
 			  char const* username, char const* password, portNumBits tunnelOverHTTPPortNum, int verbosityLevel);
+
+  // If you subclass "ProxyRTSPClient", then you should also subclass "ProxyServerMediaSession" and redefine this virtual function
+  // in order to create new objects of your "ProxyRTSPClient" subclass:
+  virtual ProxyRTSPClient* createNewProxyRTSPClient(char const* rtspURL, char const* username, char const* password,
+						    portNumBits tunnelOverHTTPPortNum, int verbosityLevel);
+
+protected:
+  ProxyRTSPClient* fProxyRTSPClient;
+  MediaSession* fClientMediaSession;
 
 private:
   friend class ProxyRTSPClient;
@@ -54,8 +112,6 @@ private:
   void continueAfterDESCRIBE(char const* sdpDescription);
 
 private:
-  class ProxyRTSPClient* fProxyRTSPClient;
-  MediaSession* fClientMediaSession;
   int fVerbosityLevel;
 };
 
